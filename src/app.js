@@ -1,11 +1,9 @@
 const express = require("express");
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Hello World people!");
-});
-
-app.get("/hello", (req, res) => {
+app.get("/users/:userId", (req, res) => {
+  console.log(req.query);
+  console.log(req.params);
   res.send("Hi!");
 });
 
