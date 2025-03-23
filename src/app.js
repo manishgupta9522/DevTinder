@@ -1,10 +1,14 @@
 const express = require("express");
 const app = express();
+const auth = require("./middleware/auth");
 
-app.get("/users/:userId", (req, res) => {
-  console.log(req.query);
-  console.log(req.params);
-  res.send("Hi!");
+app.use("/users", auth);
+
+app.get("/users/userId", (req, res) => {
+  res.send("Hi Manish!");
+});
+app.get("/users/getUser", (req, res) => {
+  res.send("Hi User!");
 });
 
 app.listen(7777, () => {
