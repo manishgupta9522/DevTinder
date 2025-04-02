@@ -1,16 +1,35 @@
 const express = require("express");
 const app = express();
-const auth = require("./middleware/auth");
+const connectDB = require("./config/database");
+require("./config/database");
 
-app.use("/users", auth);
+const User = require("./models/user");
+app.use(express.json());
 
-app.get("/users/userId", (req, res) => {
-  res.send("Hi Manish!");
-});
-app.get("/users/getUser", (req, res) => {
-  res.send("Hi User!");
+app.post("/signup", async (req, res) => {
+  const user = new User({
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    emailId: req.body.emailId,
+    password: req.body.password,
+    age: req.body.age,
+  });
+
+  try {
+    await user.save();
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
-app.listen(7777, () => {
-  console.log("Server is running on port 7777");
-});
+connectDB()
+  .then(() => {
+    console.log("MongoDb connection established");
+    app.listen(7777, () => {
+      console.log("Server is running on port 7777");
+    });
+  })
+  .catch((err) => {
+    console.log("MongoDB not connected", err);
+  });
