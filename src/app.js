@@ -5,7 +5,11 @@ require("./config/database");
 const { validateSignUpData, validateLoginData } = require("./utils/validation");
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { authUser } = require("./middleware/auth");
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   const { firstName, lastName, emailId, password, age } = req.body;
@@ -35,15 +39,17 @@ app.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
   try {
     validateLoginData(req);
-    const user = await User.findOne({ emailId });
+    const user = await User.findOne({ emailId: emailId });
     if (!user) {
-      res.status(400).send("User not found");
+      throw new Error("Invalid Credentials");
     } else {
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await user.validatePassword(password);
       if (!isPasswordValid) {
-        res.status(400).send("Invalid password");
+        throw new Error("Password is incorrect");
       } else {
-        res.status(200).json(user);
+        const token = await user.generateAuthToken();
+        res.cookie("token", token);
+        res.status(200).json({ message: "Login successful" });
       }
     }
   } catch (error) {
@@ -64,45 +70,25 @@ app.get("/user", async (req, res) => {
   }
 });
 
-app.get("/feed", async (req, res) => {
+app.get("/profile", authUser, async (req, res) => {
   try {
-    const users = await User.find({});
-
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-app.patch("/updateUser/:userId", async (req, res) => {
-  const userId = req.params.userId;
-  const data = req.body;
-
-  try {
-    const allowedUpdates = [
-      "firstName",
-      "lastName",
-
-      "password",
-      "age",
-      "gender",
-    ];
-    const isUpdateValid = Object.keys(data).every((update) =>
-      allowedUpdates.includes(update)
-    );
-    if (!isUpdateValid) {
-      throw new Error("Invalid update");
-    }
-    const user = await User.findByIdAndUpdate(userId, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const user = req.user;
     res.status(200).json(user);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
 
+app.post("/sendConnectionRequest", authUser, async (req, res) => {
+  try {
+    const user = req.user;
+    res
+      .status(200)
+      .json({ message: user.firstName + " sent connection request" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 connectDB()
   .then(() => {
     console.log("MongoDb connection established");
