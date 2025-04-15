@@ -31,4 +31,39 @@ const validateLoginData = (req) => {
   }
 };
 
-module.exports = { validateSignUpData, validateLoginData };
+const validateEditProfileData = (req) => {
+  const editAllowedFields = ["firstName", "lastName", "age", "gender"];
+
+  const isEditAllowed = Object.keys(req.body).every((key) =>
+    editAllowedFields.includes(key)
+  );
+
+  return isEditAllowed;
+};
+
+const validateUpdatePassword = (req) => {
+  const editAllowedFields = ["oldPassword", "newPassword"];
+  const isEditAllowed = Object.keys(req.body).every((key) =>
+    editAllowedFields.includes(key)
+  );
+  if (!isEditAllowed) {
+    throw new Error("Request fileds are not allowed to edit");
+  }
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new Error("Old password and new password are required");
+  }
+  if (!validator.isStrongPassword(newPassword)) {
+    throw new Error("New password must be strong");
+  }
+  if (oldPassword === newPassword) {
+    throw new Error("New password cannot be the same as the old password");
+  }
+};
+
+module.exports = {
+  validateSignUpData,
+  validateLoginData,
+  validateEditProfileData,
+  validateUpdatePassword,
+};
