@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+    profileImage: {
+      type: String,
+      default:
+        "https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fvectors%2Fblank-profile-picture-mystery-man-973460%2F&psig=AOvVaw2s_Cq8EcX4JoKp050DHivN&ust=1744781406806000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCKCQnLGn2YwDFQAAAAAdAAAAABAE",
+    },
   },
   { timestamps: true }
 );
