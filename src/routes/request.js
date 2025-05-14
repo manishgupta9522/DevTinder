@@ -13,11 +13,11 @@ requestRouter.post(
       const toUserId = req.params.toUserId;
       const status = req.params.status;
       // console.log(fromUserId, toUserId, status);
-      const allowedStatus = ["ignored", "intrested"];
+      const allowedStatus = ["ignored", "interested"];
       if (!allowedStatus.includes(status)) {
         return res
           .status(400)
-          .json({ message: "Status must be ignored or intrested" });
+          .json({ message: "Status must be ignored or interested" });
       }
 
       const toUser = await User.findById(toUserId);
@@ -73,7 +73,7 @@ requestRouter.post(
       const connectionRequest = await ConnectionRequest.findOne({
         _id: requestId,
         toId: userId,
-        status: "intrested",
+        status: "interested",
       });
 
       if (!connectionRequest) {

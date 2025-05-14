@@ -5,19 +5,22 @@ const authUser = async (req, res, next) => {
   try {
     const cookie = req.cookies;
     const { token } = cookie;
+
     if (!token) {
-      throw new Error("Token is not valid!!!");
+      return res.status(401).json({ message: "Unauthorized" }); // Return to stop further execution
     }
+
     const decoded = jwt.verify(token, "Manis#090522");
     const user = await User.findById(decoded._id);
+
     if (!user) {
-      throw new Error("User not found");
+      return res.status(401).json({ message: "Unauthorized" }); // Return to stop further execution
     } else {
       req.user = user;
-      next();
+      return next(); // Ensure next() is only called if no response is sent
     }
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    return res.status(401).json({ message: "Unauthorized" }); // Return here as well
   }
 };
 

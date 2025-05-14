@@ -3,7 +3,7 @@ const ConnectionRequest = require("../models/connectionRequest");
 const { authUser } = require("../middleware/auth");
 const User = require("../models/user");
 const userRouter = express.Router();
-
+const { validateConnectionRequest } = require("../utils/validation");
 USER_POPULATE_FIELDS = [
   "firstName",
   "lastName",
@@ -16,9 +16,9 @@ userRouter.get("/user/requests/received", authUser, async (req, res) => {
     const userId = req.user._id;
     const requests = await ConnectionRequest.find({
       toId: userId,
-      status: "intrested",
+      status: "interested",
     }).populate("fromId", USER_POPULATE_FIELDS);
-    res.status(200).json({ message: "Requests received", requests });
+    res.status(200).json({ message: "Requests received", data: requests });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
@@ -35,21 +35,21 @@ userRouter.get("/user/connections", authUser, async (req, res) => {
     })
       .populate("fromId", USER_POPULATE_FIELDS)
       .populate("toId", USER_POPULATE_FIELDS);
-    // console.log(requests);
-    const data = requests.map((request) => {
+    const validRequests = requests.filter((r) => r.fromId && r.toId);
+    const data = validRequests.map((request) => {
       if (request.fromId._id.toString() === userId.toString()) {
         return request.toId;
       }
       return request.fromId;
     });
 
-    res.status(200).json({ message: "Accepted requests", data });
+    res.status(200).json({ message: "Accepted requests", data: data });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-userRouter.get("/user/feed", authUser, async (req, res) => {
+userRouter.get("/feed", authUser, async (req, res) => {
   try {
     const page = req.query.page || 1;
     let limit = req.query.limit || 10;
@@ -75,7 +75,7 @@ userRouter.get("/user/feed", authUser, async (req, res) => {
       .select(USER_POPULATE_FIELDS)
       .skip(skip)
       .limit(limit);
-    res.status(200).json({ message: "Feed", feed });
+    res.status(200).json({ message: "Feed", data: feed });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
